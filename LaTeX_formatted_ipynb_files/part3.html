@@ -1,0 +1,231 @@
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Introduction-to-Linear-Programming-with-Python---Part-3">Introduction to Linear Programming with Python - Part 3<a class="anchor-link" href="#Introduction-to-Linear-Programming-with-Python---Part-3">&#182;</a></h1><h2 id="Real-world-examples---Resourcing-Problem">Real world examples - Resourcing Problem<a class="anchor-link" href="#Real-world-examples---Resourcing-Problem">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>We'll now look at 2 more real world examples.</p>
+<p>The first is a resourcing problem and the second is a blending problem.</p>
+<h3 id="Resourcing-Problem">Resourcing Problem<a class="anchor-link" href="#Resourcing-Problem">&#182;</a></h3>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>We're consulting for a boutique car manufacturer, producing luxury cars.</p>
+<p>They run on one month (30 days) cycles, we have one cycle to show we can provide value.</p>
+<p>There is one robot, 2 engineers and one detailer in the factory. The detailer has some holiday off, so only has 21 days available.</p>
+<p>The 2 cars need different time with each resource:</p>
+<p><strong>Robot time:</strong> Car A - 3 days; Car B - 4 days.</p>
+<p><strong>Engineer time:</strong> Car A - 5 days; Car B - 6 days.</p>
+<p><strong>Detailer time:</strong> Car A - 1.5 days; Car B - 3 days.</p>
+<p>Car A provides €30,000 profit, whilst Car B offers €45,000 profit.</p>
+<p>At the moment, they produce 4 of each cars per month, for €300,000 profit. Not bad at all, but we think we can do better for them.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>This can be modelled as follows:</p>
+<p>Maximise</p>
+<p>$\text{Profit} = 30,000A + 45,000B$</p>
+<p>Subject to:</p>
+<p>$
+A \geq 0 \\
+B \geq 0 \\
+3A + 4B  \leq 30 \\
+5A + 6B  \leq 60 \\
+1.5A + 3B  \leq 21 \\
+$</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="kn">import</span> <span class="nn">pulp</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="c"># Instantiate our problem class</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s">&quot;Profit maximising problem&quot;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMaximize</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Unlike our previous problem, the decision variables in this case won't be continuous (We can't sell half a car!), so the category is integer.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">A</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s">&#39;A&#39;</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="s">&#39;Integer&#39;</span><span class="p">)</span>
+<span class="n">B</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="s">&#39;Integer&#39;</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="c"># Objective function</span>
+<span class="n">model</span> <span class="o">+=</span> <span class="mi">30000</span> <span class="o">*</span> <span class="n">A</span> <span class="o">+</span> <span class="mi">45000</span> <span class="o">*</span> <span class="n">B</span><span class="p">,</span> <span class="s">&quot;Profit&quot;</span>
+
+<span class="c"># Constraints</span>
+<span class="n">model</span> <span class="o">+=</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">A</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">B</span> <span class="o">&lt;=</span> <span class="mi">30</span>
+<span class="n">model</span> <span class="o">+=</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">A</span> <span class="o">+</span> <span class="mi">6</span> <span class="o">*</span> <span class="n">B</span> <span class="o">&lt;=</span> <span class="mi">60</span>
+<span class="n">model</span> <span class="o">+=</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="n">A</span> <span class="o">+</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">B</span> <span class="o">&lt;=</span> <span class="mi">21</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="c"># Solve our problem</span>
+<span class="n">model</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+<span class="n">pulp</span><span class="o">.</span><span class="n">LpStatus</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">status</span><span class="p">]</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">Out[5]:</div>
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>&apos;Optimal&apos;</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[6]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="c"># Print our decision variable values</span>
+<span class="k">print</span> <span class="s">&quot;Production of Car A = {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">varValue</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;Production of Car B = {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">B</span><span class="o">.</span><span class="n">varValue</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Production of Car A = 2.0
+Production of Car B = 6.0
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="c"># Print our objective function value</span>
+<span class="k">print</span> <span class="n">pulp</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">objective</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>330000.0
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>So that's €330,000 monthly profit, compared to their original monthly profit of €300,000</p>
+<p>By producing 2 cars of Car A and 4 cars of Car B, we bolster the profits at the factory by €30,000 per month.</p>
+<p>We take our consultancy fee and leave the company with €360,000 extra profit for the factory every year.</p>
+<p>In the next part, we'll be making some sausages!</p>
+
+</div>
+</div>
+</div>

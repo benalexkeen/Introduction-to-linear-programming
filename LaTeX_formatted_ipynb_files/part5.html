@@ -1,0 +1,857 @@
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Introduction-to-Linear-Programming-with-Python---Part-5">Introduction to Linear Programming with Python - Part 5<a class="anchor-link" href="#Introduction-to-Linear-Programming-with-Python---Part-5">&#182;</a></h1><h2 id="Using-PuLP-with-pandas-and-binary-constraints-to-solve-a-scheduling-problem">Using PuLP with pandas and binary constraints to solve a scheduling problem<a class="anchor-link" href="#Using-PuLP-with-pandas-and-binary-constraints-to-solve-a-scheduling-problem">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>In this example, we'll be solving a scheduling problem. We have 2 offshore production plants in 2 locations and an estimated demand for our products.</p>
+<p>We want to produce a schedule of production from both plants that meets our demand with the lowest cost.</p>
+<p>A factory can be in 2 states:</p>
+<ul>
+<li>Off - Producing zero units</li>
+<li>On - Producing between its minimum and maximum production capacities</li>
+</ul>
+<p>Both factories have fixed costs, that are incurred as long as the factory is on, and variable costs, a cost per unit of production. These vary month by month.</p>
+<p>We also know that factory B is down for maintenance in month 5.</p>
+<p>We'll start by importing our data.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">pulp</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">factories</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_csv</span><span class="p">(</span><span class="s">&#39;csv/factory_variables.csv&#39;</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;Month&#39;</span><span class="p">,</span> <span class="s">&#39;Factory&#39;</span><span class="p">])</span>
+<span class="n">factories</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">Out[2]:</div>
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>Max_Capacity</th>
+      <th>Min_Capacity</th>
+      <th>Variable_Costs</th>
+      <th>Fixed_Costs</th>
+    </tr>
+    <tr>
+      <th>Month</th>
+      <th>Factory</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="2" valign="top">1</th>
+      <th>A</th>
+      <td>100000</td>
+      <td>20000</td>
+      <td>10</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>50000</td>
+      <td>20000</td>
+      <td>5</td>
+      <td>600</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">2</th>
+      <th>A</th>
+      <td>110000</td>
+      <td>20000</td>
+      <td>11</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>55000</td>
+      <td>20000</td>
+      <td>4</td>
+      <td>600</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">3</th>
+      <th>A</th>
+      <td>120000</td>
+      <td>20000</td>
+      <td>12</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>60000</td>
+      <td>20000</td>
+      <td>3</td>
+      <td>600</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">4</th>
+      <th>A</th>
+      <td>145000</td>
+      <td>20000</td>
+      <td>9</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>100000</td>
+      <td>20000</td>
+      <td>5</td>
+      <td>600</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">5</th>
+      <th>A</th>
+      <td>160000</td>
+      <td>20000</td>
+      <td>8</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">6</th>
+      <th>A</th>
+      <td>140000</td>
+      <td>20000</td>
+      <td>8</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>70000</td>
+      <td>20000</td>
+      <td>6</td>
+      <td>600</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">7</th>
+      <th>A</th>
+      <td>155000</td>
+      <td>20000</td>
+      <td>5</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>60000</td>
+      <td>20000</td>
+      <td>4</td>
+      <td>600</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">8</th>
+      <th>A</th>
+      <td>200000</td>
+      <td>20000</td>
+      <td>7</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>100000</td>
+      <td>20000</td>
+      <td>6</td>
+      <td>600</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">9</th>
+      <th>A</th>
+      <td>210000</td>
+      <td>20000</td>
+      <td>9</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>100000</td>
+      <td>20000</td>
+      <td>8</td>
+      <td>600</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">10</th>
+      <th>A</th>
+      <td>197000</td>
+      <td>20000</td>
+      <td>10</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>100000</td>
+      <td>20000</td>
+      <td>11</td>
+      <td>600</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">11</th>
+      <th>A</th>
+      <td>80000</td>
+      <td>20000</td>
+      <td>8</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>120000</td>
+      <td>20000</td>
+      <td>10</td>
+      <td>600</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">12</th>
+      <th>A</th>
+      <td>150000</td>
+      <td>20000</td>
+      <td>8</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>150000</td>
+      <td>20000</td>
+      <td>12</td>
+      <td>600</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>We'll also import our demand data</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">demand</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_csv</span><span class="p">(</span><span class="s">&#39;csv/monthly_demand.csv&#39;</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;Month&#39;</span><span class="p">])</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">demand</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">Out[4]:</div>
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Demand</th>
+    </tr>
+    <tr>
+      <th>Month</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>120000</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>100000</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>130000</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>130000</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>140000</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>130000</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>150000</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>170000</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>200000</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>190000</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>140000</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>100000</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>As we have fixed costs and variable costs, we'll need to model both production and the status of the factory i.e. whether it is on or off.</p>
+<p>Production is modelled as an integer variable.</p>
+<p>We have a value for production for each month for each factory, this is given by the tuples of our multi-index pandas DataFrame index.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">production</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span><span class="s">&quot;production&quot;</span><span class="p">,</span>
+                                     <span class="p">((</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">)</span> <span class="k">for</span> <span class="n">month</span><span class="p">,</span> <span class="n">factory</span> <span class="ow">in</span> <span class="n">factories</span><span class="o">.</span><span class="n">index</span><span class="p">),</span>
+                                     <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                     <span class="n">cat</span><span class="o">=</span><span class="s">&#39;Integer&#39;</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Factory status is modelled as a binary variable. It will have a value of 1 if the factory is on and a value of 0 when the factory is off.</p>
+<p>Binary variables are the same as integer variables but constrained to be &gt;= 0 and &lt;=1</p>
+<p>Again this has a value for each month for each factory, again given by the index of our DataFrame</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[6]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">factory_status</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span><span class="s">&quot;factory_status&quot;</span><span class="p">,</span>
+                                     <span class="p">((</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">)</span> <span class="k">for</span> <span class="n">month</span><span class="p">,</span> <span class="n">factory</span> <span class="ow">in</span> <span class="n">factories</span><span class="o">.</span><span class="n">index</span><span class="p">),</span>
+                                     <span class="n">cat</span><span class="o">=</span><span class="s">&#39;Binary&#39;</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>We instantiate our model and use LpMinimize as the aim is to minimise costs.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">model</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s">&quot;Cost minimising scheduling problem&quot;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>In our objective function we include our 2 costs:</p>
+<ul>
+<li>Our variable costs is the product of the variable costs per unit and production</li>
+<li>Our fixed costs is the factory status - 1 (on) or 0 (off) - multiplied by the fixed cost of production</li>
+</ul>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[8]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">production</span><span class="p">[</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">]</span> <span class="o">*</span> <span class="n">factories</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">),</span> <span class="s">&#39;Variable_Costs&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">month</span><span class="p">,</span> <span class="n">factory</span> <span class="ow">in</span> <span class="n">factories</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>
+    <span class="o">+</span> <span class="p">[</span><span class="n">factory_status</span><span class="p">[</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">]</span> <span class="o">*</span> <span class="n">factories</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">),</span> <span class="s">&#39;Fixed_Costs&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">month</span><span class="p">,</span> <span class="n">factory</span> <span class="ow">in</span> <span class="n">factories</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>We build up our constraints</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[9]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="c"># Production in any month must be equal to demand</span>
+<span class="n">months</span> <span class="o">=</span> <span class="n">demand</span><span class="o">.</span><span class="n">index</span>
+<span class="k">for</span> <span class="n">month</span> <span class="ow">in</span> <span class="n">months</span><span class="p">:</span>
+    <span class="n">model</span> <span class="o">+=</span> <span class="n">production</span><span class="p">[(</span><span class="n">month</span><span class="p">,</span> <span class="s">&#39;A&#39;</span><span class="p">)]</span> <span class="o">+</span> <span class="n">production</span><span class="p">[(</span><span class="n">month</span><span class="p">,</span> <span class="s">&#39;B&#39;</span><span class="p">)]</span> <span class="o">==</span> <span class="n">demand</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">month</span><span class="p">,</span> <span class="s">&#39;Demand&#39;</span><span class="p">]</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>An issue we run into here is that in linear programming we can't use conditional constraints.</p>
+<p>For example we can't add to our model that if the factory is off factory status must be 0, and if it is on factory status must be 1. Before we've solved our model though, we don't know if the factory will be on or off in a given month.</p>
+<p>In this case construct constraints that have minimum and maximum capacities that are constant variables, which we multiply by the factory status.</p>
+<p>Now, either factory status is 0 and:</p>
+<ul>
+<li>$ \text{min_production} \geq 0$</li>
+<li>$ \text{max_production} \leq 0$</li>
+</ul>
+<p>Or factory status is 1 and:</p>
+<ul>
+<li>$ \text{min_production} \leq \text{min_capacity}$</li>
+<li>$ \text{max_production} \leq \text{max_capacity}$</li>
+</ul>
+<p><em>(In some cases we can use linear constraints to model conditional statements, we'll explore this in part 6)</em></p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[10]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="c"># Production in any month must be between minimum and maximum capacity, or zero.</span>
+<span class="k">for</span> <span class="n">month</span><span class="p">,</span> <span class="n">factory</span> <span class="ow">in</span> <span class="n">factories</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+    <span class="n">min_production</span> <span class="o">=</span> <span class="n">factories</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">),</span> <span class="s">&#39;Min_Capacity&#39;</span><span class="p">]</span>
+    <span class="n">max_production</span> <span class="o">=</span> <span class="n">factories</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">),</span> <span class="s">&#39;Max_Capacity&#39;</span><span class="p">]</span>
+    <span class="n">model</span> <span class="o">+=</span> <span class="n">production</span><span class="p">[(</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">)]</span> <span class="o">&gt;=</span> <span class="n">min_production</span> <span class="o">*</span> <span class="n">factory_status</span><span class="p">[</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">]</span>
+    <span class="n">model</span> <span class="o">+=</span> <span class="n">production</span><span class="p">[(</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">)]</span> <span class="o">&lt;=</span> <span class="n">max_production</span> <span class="o">*</span> <span class="n">factory_status</span><span class="p">[</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">]</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[11]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="c"># Factory B is off in May</span>
+<span class="n">model</span> <span class="o">+=</span> <span class="n">factory_status</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="s">&#39;B&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="n">model</span> <span class="o">+=</span> <span class="n">production</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="s">&#39;B&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>We then solve the model</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[12]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">model</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+<span class="n">pulp</span><span class="o">.</span><span class="n">LpStatus</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">status</span><span class="p">]</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">Out[12]:</div>
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>&apos;Optimal&apos;</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Let's take a look at the optimal production schedule output for each month from each factory. For ease of viewing we'll output the data to a pandas DataFrame.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[13]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">month</span><span class="p">,</span> <span class="n">factory</span> <span class="ow">in</span> <span class="n">production</span><span class="p">:</span>
+    <span class="n">var_output</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;Month&#39;</span><span class="p">:</span> <span class="n">month</span><span class="p">,</span>
+        <span class="s">&#39;Factory&#39;</span><span class="p">:</span> <span class="n">factory</span><span class="p">,</span>
+        <span class="s">&#39;Production&#39;</span><span class="p">:</span> <span class="n">production</span><span class="p">[(</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">)]</span><span class="o">.</span><span class="n">varValue</span><span class="p">,</span>
+        <span class="s">&#39;Factory Status&#39;</span><span class="p">:</span> <span class="n">factory_status</span><span class="p">[(</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">)]</span><span class="o">.</span><span class="n">varValue</span>
+    <span class="p">}</span>
+    <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">var_output</span><span class="p">)</span>
+<span class="n">output_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s">&#39;Month&#39;</span><span class="p">,</span> <span class="s">&#39;Factory&#39;</span><span class="p">])</span>
+<span class="n">output_df</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s">&#39;Month&#39;</span><span class="p">,</span> <span class="s">&#39;Factory&#39;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">output_df</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">Out[13]:</div>
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>Factory Status</th>
+      <th>Production</th>
+    </tr>
+    <tr>
+      <th>Month</th>
+      <th>Factory</th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="2" valign="top">1</th>
+      <th>A</th>
+      <td>1</td>
+      <td>70000</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>1</td>
+      <td>50000</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">2</th>
+      <th>A</th>
+      <td>1</td>
+      <td>45000</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>1</td>
+      <td>55000</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">3</th>
+      <th>A</th>
+      <td>1</td>
+      <td>70000</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>1</td>
+      <td>60000</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">4</th>
+      <th>A</th>
+      <td>1</td>
+      <td>30000</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>1</td>
+      <td>100000</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">5</th>
+      <th>A</th>
+      <td>1</td>
+      <td>140000</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">6</th>
+      <th>A</th>
+      <td>1</td>
+      <td>60000</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>1</td>
+      <td>70000</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">7</th>
+      <th>A</th>
+      <td>1</td>
+      <td>90000</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>1</td>
+      <td>60000</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">8</th>
+      <th>A</th>
+      <td>1</td>
+      <td>70000</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>1</td>
+      <td>100000</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">9</th>
+      <th>A</th>
+      <td>1</td>
+      <td>100000</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>1</td>
+      <td>100000</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">10</th>
+      <th>A</th>
+      <td>1</td>
+      <td>190000</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">11</th>
+      <th>A</th>
+      <td>1</td>
+      <td>80000</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>1</td>
+      <td>60000</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">12</th>
+      <th>A</th>
+      <td>1</td>
+      <td>100000</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Notice above that the factory status is 0 when not producing and 1 when it is producing</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[14]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="c"># Print our objective function value (Total Costs)</span>
+<span class="k">print</span> <span class="n">pulp</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">objective</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>12906400.0
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>

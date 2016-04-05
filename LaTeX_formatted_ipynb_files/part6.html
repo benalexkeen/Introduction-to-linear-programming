@@ -1,0 +1,1004 @@
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Introduction-to-Linear-Programming-with-Python---Part-6">Introduction to Linear Programming with Python - Part 6<a class="anchor-link" href="#Introduction-to-Linear-Programming-with-Python---Part-6">&#182;</a></h1><h2 id="Mocking-conditional-statements-using-binary-constraints">Mocking conditional statements using binary constraints<a class="anchor-link" href="#Mocking-conditional-statements-using-binary-constraints">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>In part 5, I mentioned that in some cases it is possible to construct conditional statements using binary constraints.</p>
+<p>We will explore not only conditional statements using binary constraints, but combining them with logical operators, 'and' and 'or'.</p>
+<p>First we'll work through some theory, then a real world example as an extension of part 5's example at the end.</p>
+<h4 id="Conditional-statement">Conditional statement<a class="anchor-link" href="#Conditional-statement">&#182;</a></h4><p>To start simply, if we have the binary constraint x<sub>1</sub> and we want:</p>
+<div class="highlight"><pre><span class="k">if</span> <span class="n">x1</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="n">y1</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="k">elif</span> <span class="n">x1</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">y1</span> <span class="o">==</span> <span class="mi">0</span>
+</pre></div>
+<p>We can achieve this easily using the following constraint:</p>
+<div class="highlight"><pre><span class="n">y1</span> <span class="o">==</span> <span class="n">x1</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>However, if we wanted the opposite:</p>
+<div class="highlight"><pre><span class="k">if</span> <span class="n">x1</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="n">y1</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="k">elif</span> <span class="n">x1</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">y1</span> <span class="o">==</span> <span class="mi">1</span>
+</pre></div>
+<p>Given that they most both be 1 or 0, we just need the following constraint:</p>
+<div class="highlight"><pre><span class="n">x1</span> <span class="o">+</span> <span class="n">y1</span> <span class="o">==</span> <span class="mi">1</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h4 id="Logical-'AND'-operator">Logical 'AND' operator<a class="anchor-link" href="#Logical-'AND'-operator">&#182;</a></h4><p>Now for something a little more complex, we can coerce a particular binary constraint to be 1 based on the states of 2 other binary constraints.</p>
+<p>If we have binary constraints x<sub>1</sub> and x<sub>2</sub> and we want to achieve the following:</p>
+<div class="highlight"><pre><span class="k">if</span> <span class="n">x1</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">x2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">y1</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">y1</span> <span class="o">==</span> <span class="mi">0</span>
+</pre></div>
+<p>So that $y_1$ is only 1 in the case that x<sub>1</sub> is 1 and x<sub>2</sub> is 0. We can use the following 3 constraints to achieve this:</p>
+<div class="highlight"><pre><span class="p">[</span>
+<span class="n">y1</span> <span class="o">&gt;=</span> <span class="n">x1</span> <span class="o">-</span> <span class="n">x2</span><span class="p">,</span>
+<span class="n">y1</span> <span class="o">&lt;=</span> <span class="n">x1</span><span class="p">,</span>
+<span class="n">y1</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x2</span><span class="p">)</span>
+<span class="p">]</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>We'll take a moment to deconstruct this. In our preferred case that x<sub>1</sub> = 1 and x<sub>2</sub> = 0, the three statments resolve to:</p>
+<ul>
+<li>y<sub>1</sub> ≥ 1</li>
+<li>y<sub>1</sub> ≤ 1</li>
+<li>y<sub>1</sub> ≤ 1</li>
+</ul>
+<p>The only value of $y_1$ that fulfils each of these is 1.</p>
+<p>In any other case, however, y<sub>1</sub> will be zero. Let's take another example, say x<sub>1</sub> = 0 and x<sub>2</sub> = 1. This resolves to:</p>
+<ul>
+<li>y<sub>1</sub> ≥ -1</li>
+<li>y<sub>1</sub> ≤ 0</li>
+<li>y<sub>1</sub> ≤ 0</li>
+</ul>
+<p>Given that y<sub>1</sub> is a binary variable and must be 0 or 1, the only value of y<sub>1</sub> that can fulfil each of these is 0.</p>
+<p>You can construct 3 constraints so that y<sub>1</sub> is equal to 1, only in the case you're interested in out of the 4 following options:</p>
+<ul>
+<li>x<sub>1</sub> = 1 and x<sub>2</sub> = 1 </li>
+<li>x<sub>1</sub> = 1 and x<sub>2</sub> = 0 </li>
+<li>x<sub>1</sub> = 0 and x<sub>2</sub> = 1 </li>
+<li>x<sub>1</sub> = 0 and x<sub>2</sub> = 0 </li>
+</ul>
+<p>I have created a function for exactly this purpose to cover all cases:</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="k">def</span> <span class="nf">make_io_and_constraint</span><span class="p">(</span><span class="n">y1</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">target_x1</span><span class="p">,</span> <span class="n">target_x2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a list of constraints for a linear programming model</span>
+<span class="sd">    that will constrain y1 to 1 when</span>
+<span class="sd">    x1 = target_x1 and x2 = target_x2; </span>
+<span class="sd">    where target_x1 and target_x2 are 1 or 0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">binary</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">target_x1</span> <span class="ow">in</span> <span class="n">binary</span>
+    <span class="k">assert</span> <span class="n">target_x2</span> <span class="ow">in</span> <span class="n">binary</span>
+    
+    <span class="k">if</span> <span class="n">IOx1</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">IOx2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">y1</span> <span class="o">&gt;=</span> <span class="n">x1</span> <span class="o">+</span> <span class="n">x2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">y1</span> <span class="o">&lt;=</span> <span class="n">x1</span><span class="p">,</span>
+            <span class="n">y1</span> <span class="o">&lt;=</span> <span class="n">x2</span>
+        <span class="p">]</span>
+    <span class="k">elif</span> <span class="n">IOx1</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">IOx2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">y1</span> <span class="o">&gt;=</span> <span class="n">x1</span> <span class="o">-</span> <span class="n">x2</span><span class="p">,</span>
+            <span class="n">y1</span> <span class="o">&lt;=</span> <span class="n">x1</span><span class="p">,</span>
+            <span class="n">y1</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x2</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="k">elif</span> <span class="n">IOx1</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">IOx2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">y1</span> <span class="o">&gt;=</span> <span class="n">x2</span> <span class="o">-</span> <span class="n">x1</span><span class="p">,</span>
+            <span class="n">y1</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x1</span><span class="p">),</span>
+            <span class="n">y1</span> <span class="o">&lt;=</span> <span class="n">x2</span>
+        <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">y1</span> <span class="o">&gt;=</span> <span class="o">-</span> <span class="p">(</span><span class="n">x1</span> <span class="o">+</span> <span class="n">x2</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">y1</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x1</span><span class="p">),</span>
+            <span class="n">y1</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x2</span><span class="p">)</span>
+        <span class="p">]</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h4 id="Logical-'OR'-operator">Logical 'OR' operator<a class="anchor-link" href="#Logical-'OR'-operator">&#182;</a></h4><p>This is all well and good for the 'and' logical operator. What about the 'or' logical operator.</p>
+<p>If we would like the following:</p>
+<div class="highlight"><pre><span class="k">if</span> <span class="n">x1</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">x2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="n">y1</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">y1</span> <span class="o">==</span> <span class="mi">0</span>
+</pre></div>
+<p>We can use the following linear constraints:</p>
+<div class="highlight"><pre><span class="n">y1</span> <span class="o">&lt;=</span> <span class="n">x1</span> <span class="o">+</span> <span class="n">x2</span>
+<span class="n">y1</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">&gt;=</span> <span class="n">x1</span> <span class="o">+</span> <span class="n">x2</span>
+</pre></div>
+<p>So that:</p>
+<ul>
+<li>if x<sub>1</sub> is 1 and x<sub>2</sub> is 1:<ul>
+<li>y<sub>1</sub> ≤ 2</li>
+<li>2y<sub>1</sub> ≥ 2</li>
+<li>y<sub>1</sub> must equal 1</li>
+</ul>
+</li>
+<li>if x<sub>1</sub> is 1 and x<sub>2</sub> is 0:<ul>
+<li>y<sub>1</sub> ≤ 1</li>
+<li>2y<sub>1</sub> ≥ 1</li>
+<li>y<sub>1</sub> must equal 1</li>
+</ul>
+</li>
+<li>if x<sub>1</sub> is 0 and x<sub>2</sub> is 1:<ul>
+<li>y<sub>1</sub> ≤ 1</li>
+<li>2y<sub>1</sub> ≥ 1</li>
+<li>y<sub>1</sub> must equal 1</li>
+</ul>
+</li>
+<li>if x<sub>1</sub> is 0 and x<sub>2</sub> is 0:<ul>
+<li>y<sub>1</sub> ≤ 0</li>
+<li>2y<sub>1</sub> ≥ 0</li>
+<li>y<sub>1</sub> must equal 0</li>
+</ul>
+</li>
+</ul>
+<p>Again, we'll consider the alternative option:</p>
+<div class="highlight"><pre><span class="k">if</span> <span class="n">x1</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">x2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">y1</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">y1</span> <span class="o">==</span> <span class="mi">0</span>
+</pre></div>
+<p>We can use the following linear constraints:</p>
+<div class="highlight"><pre><span class="n">y1</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">&lt;=</span> <span class="mi">2</span> <span class="o">-</span> <span class="p">(</span><span class="n">x1</span> <span class="o">+</span> <span class="n">x2</span><span class="p">)</span>
+<span class="n">y1</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">x1</span> <span class="o">+</span> <span class="n">x2</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="An-Example---Scheduling-Example-Extended">An Example - Scheduling Example Extended<a class="anchor-link" href="#An-Example---Scheduling-Example-Extended">&#182;</a></h3>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>In our last example, we explored the scheduling of 2 factories.</p>
+<p>Both factories had 2 costs:</p>
+<ul>
+<li>Fixed Costs - Costs incurred while the factory is running</li>
+<li>Variable Costs - Cost per unit of production</li>
+</ul>
+<p>We're going to introduce a third cost - Start up cost.</p>
+<p>This will be a cost incurred by turning on the machines at one of the factories.</p>
+<p>In this example, our start-up costs will be:</p>
+<ul>
+<li>Factory A - €20,000</li>
+<li>Factory B - €400,000</li>
+</ul>
+<p>Let's start by reminding ourselves of the input data.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">pulp</span>
+
+<span class="n">factories</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_csv</span><span class="p">(</span><span class="s">&#39;csv/factory_variables.csv&#39;</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;Month&#39;</span><span class="p">,</span> <span class="s">&#39;Factory&#39;</span><span class="p">])</span>
+<span class="n">factories</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">Out[2]:</div>
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>Max_Capacity</th>
+      <th>Min_Capacity</th>
+      <th>Variable_Costs</th>
+      <th>Fixed_Costs</th>
+    </tr>
+    <tr>
+      <th>Month</th>
+      <th>Factory</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="2" valign="top">1</th>
+      <th>A</th>
+      <td>100000</td>
+      <td>20000</td>
+      <td>10</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>50000</td>
+      <td>20000</td>
+      <td>5</td>
+      <td>600</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">2</th>
+      <th>A</th>
+      <td>110000</td>
+      <td>20000</td>
+      <td>11</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>55000</td>
+      <td>20000</td>
+      <td>4</td>
+      <td>600</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">3</th>
+      <th>A</th>
+      <td>120000</td>
+      <td>20000</td>
+      <td>12</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>60000</td>
+      <td>20000</td>
+      <td>3</td>
+      <td>600</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">4</th>
+      <th>A</th>
+      <td>145000</td>
+      <td>20000</td>
+      <td>9</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>100000</td>
+      <td>20000</td>
+      <td>5</td>
+      <td>600</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">5</th>
+      <th>A</th>
+      <td>160000</td>
+      <td>20000</td>
+      <td>8</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">6</th>
+      <th>A</th>
+      <td>140000</td>
+      <td>20000</td>
+      <td>8</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>70000</td>
+      <td>20000</td>
+      <td>6</td>
+      <td>600</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">7</th>
+      <th>A</th>
+      <td>155000</td>
+      <td>20000</td>
+      <td>5</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>60000</td>
+      <td>20000</td>
+      <td>4</td>
+      <td>600</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">8</th>
+      <th>A</th>
+      <td>200000</td>
+      <td>20000</td>
+      <td>7</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>100000</td>
+      <td>20000</td>
+      <td>6</td>
+      <td>600</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">9</th>
+      <th>A</th>
+      <td>210000</td>
+      <td>20000</td>
+      <td>9</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>100000</td>
+      <td>20000</td>
+      <td>8</td>
+      <td>600</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">10</th>
+      <th>A</th>
+      <td>197000</td>
+      <td>20000</td>
+      <td>10</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>100000</td>
+      <td>20000</td>
+      <td>11</td>
+      <td>600</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">11</th>
+      <th>A</th>
+      <td>80000</td>
+      <td>20000</td>
+      <td>8</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>120000</td>
+      <td>20000</td>
+      <td>10</td>
+      <td>600</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">12</th>
+      <th>A</th>
+      <td>150000</td>
+      <td>20000</td>
+      <td>8</td>
+      <td>500</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>150000</td>
+      <td>20000</td>
+      <td>12</td>
+      <td>600</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">demand</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_csv</span><span class="p">(</span><span class="s">&#39;csv/monthly_demand.csv&#39;</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;Month&#39;</span><span class="p">])</span>
+<span class="n">demand</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">Out[3]:</div>
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Demand</th>
+    </tr>
+    <tr>
+      <th>Month</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>120000</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>100000</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>130000</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>130000</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>140000</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>130000</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>150000</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>170000</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>200000</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>190000</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>140000</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>100000</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>We'll begin by defining our decision variables, we have an additional binary variable for switching on the factory.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="c"># Production</span>
+<span class="n">production</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span><span class="s">&quot;production&quot;</span><span class="p">,</span>
+                                     <span class="p">((</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">)</span> <span class="k">for</span> <span class="n">month</span><span class="p">,</span> <span class="n">factory</span> <span class="ow">in</span> <span class="n">factories</span><span class="o">.</span><span class="n">index</span><span class="p">),</span>
+                                     <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                     <span class="n">cat</span><span class="o">=</span><span class="s">&#39;Integer&#39;</span><span class="p">)</span>
+
+<span class="c"># Factory Status, On or Off</span>
+<span class="n">factory_status</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span><span class="s">&quot;factory_status&quot;</span><span class="p">,</span>
+                                     <span class="p">((</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">)</span> <span class="k">for</span> <span class="n">month</span><span class="p">,</span> <span class="n">factory</span> <span class="ow">in</span> <span class="n">factories</span><span class="o">.</span><span class="n">index</span><span class="p">),</span>
+                                     <span class="n">cat</span><span class="o">=</span><span class="s">&#39;Binary&#39;</span><span class="p">)</span>
+
+<span class="c"># Factory switch on or off</span>
+<span class="n">switch_on</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span><span class="s">&quot;switch_on&quot;</span><span class="p">,</span>
+                                    <span class="p">((</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">)</span> <span class="k">for</span> <span class="n">month</span><span class="p">,</span> <span class="n">factory</span> <span class="ow">in</span> <span class="n">factories</span><span class="o">.</span><span class="n">index</span><span class="p">),</span>
+                                    <span class="n">cat</span><span class="o">=</span><span class="s">&#39;Binary&#39;</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>We instantiate our model and define our objective function, including start up costs</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="c"># Instantiate the model</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s">&quot;Cost minimising scheduling problem&quot;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+
+<span class="c"># Select index on factory A or B</span>
+<span class="n">factory_A_index</span> <span class="o">=</span> <span class="p">[</span><span class="n">tpl</span> <span class="k">for</span> <span class="n">tpl</span> <span class="ow">in</span> <span class="n">factories</span><span class="o">.</span><span class="n">index</span> <span class="k">if</span> <span class="n">tpl</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;A&#39;</span><span class="p">]</span>
+<span class="n">factory_B_index</span> <span class="o">=</span> <span class="p">[</span><span class="n">tpl</span> <span class="k">for</span> <span class="n">tpl</span> <span class="ow">in</span> <span class="n">factories</span><span class="o">.</span><span class="n">index</span> <span class="k">if</span> <span class="n">tpl</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;B&#39;</span><span class="p">]</span>
+
+<span class="c"># Define objective function</span>
+<span class="n">model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">production</span><span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="n">f</span><span class="p">]</span> <span class="o">*</span> <span class="n">factories</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">m</span><span class="p">,</span> <span class="n">f</span><span class="p">),</span> <span class="s">&#39;Variable_Costs&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">factories</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>
+    <span class="o">+</span> <span class="p">[</span><span class="n">factory_status</span><span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="n">f</span><span class="p">]</span> <span class="o">*</span> <span class="n">factories</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">m</span><span class="p">,</span> <span class="n">f</span><span class="p">),</span> <span class="s">&#39;Fixed_Costs&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">factories</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>
+    <span class="o">+</span> <span class="p">[</span><span class="n">switch_on</span><span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="n">f</span><span class="p">]</span> <span class="o">*</span> <span class="mi">20000</span> <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">factory_A_index</span><span class="p">]</span>
+    <span class="o">+</span> <span class="p">[</span><span class="n">switch_on</span><span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="n">f</span><span class="p">]</span> <span class="o">*</span> <span class="mi">400000</span> <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">factory_B_index</span><span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Now we begin to build up our constraints as in Part 5</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[6]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="c"># Production in any month must be equal to demand</span>
+<span class="n">months</span> <span class="o">=</span> <span class="n">demand</span><span class="o">.</span><span class="n">index</span>
+<span class="k">for</span> <span class="n">month</span> <span class="ow">in</span> <span class="n">months</span><span class="p">:</span>
+    <span class="n">model</span> <span class="o">+=</span> <span class="n">production</span><span class="p">[(</span><span class="n">month</span><span class="p">,</span> <span class="s">&#39;A&#39;</span><span class="p">)]</span> <span class="o">+</span> <span class="n">production</span><span class="p">[(</span><span class="n">month</span><span class="p">,</span> <span class="s">&#39;B&#39;</span><span class="p">)]</span> <span class="o">==</span> <span class="n">demand</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">month</span><span class="p">,</span> <span class="s">&#39;Demand&#39;</span><span class="p">]</span>
+
+<span class="c"># Production in any month must be between minimum and maximum capacity, or zero.</span>
+<span class="k">for</span> <span class="n">month</span><span class="p">,</span> <span class="n">factory</span> <span class="ow">in</span> <span class="n">factories</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+    <span class="n">min_production</span> <span class="o">=</span> <span class="n">factories</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">),</span> <span class="s">&#39;Min_Capacity&#39;</span><span class="p">]</span>
+    <span class="n">max_production</span> <span class="o">=</span> <span class="n">factories</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">),</span> <span class="s">&#39;Max_Capacity&#39;</span><span class="p">]</span>
+    <span class="n">model</span> <span class="o">+=</span> <span class="n">production</span><span class="p">[(</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">)]</span> <span class="o">&gt;=</span> <span class="n">min_production</span> <span class="o">*</span> <span class="n">factory_status</span><span class="p">[</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">]</span>
+    <span class="n">model</span> <span class="o">+=</span> <span class="n">production</span><span class="p">[(</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">)]</span> <span class="o">&lt;=</span> <span class="n">max_production</span> <span class="o">*</span> <span class="n">factory_status</span><span class="p">[</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">]</span>
+
+<span class="c"># Factory B is off in May</span>
+<span class="n">model</span> <span class="o">+=</span> <span class="n">factory_status</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="s">&#39;B&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="n">model</span> <span class="o">+=</span> <span class="n">production</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="s">&#39;B&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>But now we want to add in our constraints for switching on.</p>
+<p>A factory switches on if:</p>
+<ul>
+<li>It is off in the previous month (m-1)</li>
+<li>AND it on in the current month (m).</li>
+</ul>
+<p>As we don't know if the factory is on before month 0, we'll assume that the factory has switched on if it is on in month 1.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="k">for</span> <span class="n">month</span><span class="p">,</span> <span class="n">factory</span> <span class="ow">in</span> <span class="n">factories</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+    <span class="c"># In month 1, if the factory ison, we assume it turned on</span>
+    <span class="k">if</span> <span class="n">month</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">+=</span> <span class="n">switch_on</span><span class="p">[</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">]</span> <span class="o">==</span> <span class="n">factory_status</span><span class="p">[</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">]</span>
+    
+    <span class="c"># In other months, if the factory is on in the current month AND off in the previous month, switch on = 1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">+=</span> <span class="n">switch_on</span><span class="p">[</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">factory_status</span><span class="p">[</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">]</span> <span class="o">-</span> <span class="n">factory_status</span><span class="p">[</span><span class="n">month</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">factory</span><span class="p">]</span>
+        <span class="n">model</span> <span class="o">+=</span> <span class="n">switch_on</span><span class="p">[</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">factory_status</span><span class="p">[</span><span class="n">month</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">factory</span><span class="p">]</span>
+        <span class="n">model</span> <span class="o">+=</span> <span class="n">switch_on</span><span class="p">[</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">factory_status</span><span class="p">[</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">]</span>
+        
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>We'll then solve our model</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[8]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">model</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+<span class="n">pulp</span><span class="o">.</span><span class="n">LpStatus</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">status</span><span class="p">]</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">Out[8]:</div>
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>&apos;Optimal&apos;</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[9]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">month</span><span class="p">,</span> <span class="n">factory</span> <span class="ow">in</span> <span class="n">production</span><span class="p">:</span>
+    <span class="n">var_output</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;Month&#39;</span><span class="p">:</span> <span class="n">month</span><span class="p">,</span>
+        <span class="s">&#39;Factory&#39;</span><span class="p">:</span> <span class="n">factory</span><span class="p">,</span>
+        <span class="s">&#39;Production&#39;</span><span class="p">:</span> <span class="n">production</span><span class="p">[(</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">)]</span><span class="o">.</span><span class="n">varValue</span><span class="p">,</span>
+        <span class="s">&#39;Factory Status&#39;</span><span class="p">:</span> <span class="n">factory_status</span><span class="p">[(</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">)]</span><span class="o">.</span><span class="n">varValue</span><span class="p">,</span>
+        <span class="s">&#39;Switch On&#39;</span><span class="p">:</span> <span class="n">switch_on</span><span class="p">[(</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">)]</span><span class="o">.</span><span class="n">varValue</span>
+    <span class="p">}</span>
+    <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">var_output</span><span class="p">)</span>
+<span class="n">output_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s">&#39;Month&#39;</span><span class="p">,</span> <span class="s">&#39;Factory&#39;</span><span class="p">])</span>
+<span class="n">output_df</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s">&#39;Month&#39;</span><span class="p">,</span> <span class="s">&#39;Factory&#39;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">output_df</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">Out[9]:</div>
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>Factory Status</th>
+      <th>Production</th>
+      <th>Switch On</th>
+    </tr>
+    <tr>
+      <th>Month</th>
+      <th>Factory</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="2" valign="top">1</th>
+      <th>A</th>
+      <td>1</td>
+      <td>70000</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>1</td>
+      <td>50000</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">2</th>
+      <th>A</th>
+      <td>1</td>
+      <td>45000</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>1</td>
+      <td>55000</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">3</th>
+      <th>A</th>
+      <td>1</td>
+      <td>70000</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>1</td>
+      <td>60000</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">4</th>
+      <th>A</th>
+      <td>1</td>
+      <td>30000</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>1</td>
+      <td>100000</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">5</th>
+      <th>A</th>
+      <td>1</td>
+      <td>140000</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">6</th>
+      <th>A</th>
+      <td>1</td>
+      <td>60000</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>1</td>
+      <td>70000</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">7</th>
+      <th>A</th>
+      <td>1</td>
+      <td>90000</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>1</td>
+      <td>60000</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">8</th>
+      <th>A</th>
+      <td>1</td>
+      <td>70000</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>1</td>
+      <td>100000</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">9</th>
+      <th>A</th>
+      <td>1</td>
+      <td>100000</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>1</td>
+      <td>100000</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">10</th>
+      <th>A</th>
+      <td>1</td>
+      <td>170000</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>1</td>
+      <td>20000</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">11</th>
+      <th>A</th>
+      <td>1</td>
+      <td>80000</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>1</td>
+      <td>60000</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">12</th>
+      <th>A</th>
+      <td>1</td>
+      <td>100000</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>B</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Interestingly, we see that it now makes economic sense to keep factory B on after it turns off in month 5 up until month 12.</p>
+<p>Previously, we had the case that it was not economic to run factory B in month 10, but as there is now a significant cost to switching off and back on, the factory runs through month 10 at its lowest capacity (20,000 units).</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<hr>
+<p>For those interested in using my function defined above (make_io_and_constraint). Instead of:</p>
+<div class="highlight"><pre><span class="n">model</span> <span class="o">+=</span> <span class="n">switch_on</span><span class="p">[</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">factory_status</span><span class="p">[</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">]</span> <span class="o">-</span> <span class="n">factory_status</span><span class="p">[</span><span class="n">month</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">factory</span><span class="p">]</span>
+<span class="n">model</span> <span class="o">+=</span> <span class="n">switch_on</span><span class="p">[</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">factory_status</span><span class="p">[</span><span class="n">month</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">factory</span><span class="p">]</span>
+<span class="n">model</span> <span class="o">+=</span> <span class="n">switch_on</span><span class="p">[</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">factory_status</span><span class="p">[</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">]</span>
+</pre></div>
+<p>You could write:</p>
+<div class="highlight"><pre><span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">make_io_and_constraint</span><span class="p">(</span><span class="n">switch_on</span><span class="p">[</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">],</span> 
+                                        <span class="n">factory_status</span><span class="p">[</span><span class="n">month</span><span class="p">,</span> <span class="n">factory</span><span class="p">],</span> 
+                                        <span class="n">factory_status</span><span class="p">[</span><span class="n">month</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">factory</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">+=</span> <span class="n">constriant</span>
+</pre></div>
+
+</div>
+</div>
+</div>

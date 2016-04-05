@@ -1,0 +1,342 @@
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Introduction-to-Linear-Programming-with-Python---Part-4">Introduction to Linear Programming with Python - Part 4<a class="anchor-link" href="#Introduction-to-Linear-Programming-with-Python---Part-4">&#182;</a></h1><h2 id="Real-world-examples---Blending-Problem">Real world examples - Blending Problem<a class="anchor-link" href="#Real-world-examples---Blending-Problem">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>We're going to make some sausages!</p>
+<p>We have the following ingredients available to us:</p>
+<table>
+<thead><tr>
+<th>Ingredient</th>
+<th>Cost (€/kg)</th>
+<th>Availability (kg)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pork</td>
+<td>4.32</td>
+<td>30</td>
+</tr>
+<tr>
+<td>Wheat</td>
+<td>2.46</td>
+<td>20</td>
+</tr>
+<tr>
+<td>Starch</td>
+<td>1.86</td>
+<td>17</td>
+</tr>
+</tbody>
+</table>
+<p>We'll make 2 types of sausage:</p>
+<ul>
+<li>Economy (&gt;40% Pork)</li>
+<li>Premium (&gt;60% Pork)</li>
+</ul>
+<p>One sausage is 50 grams (0.05 kg)</p>
+<p>According to government regulations, the most starch we can use in our sausages is 25%</p>
+<p>We have a contract with a butcher, and have already purchased 23 kg pork, that must go in our sausages.</p>
+<p>We have a demand for 350 economy sausages and 500 premium sausages.</p>
+<p>We need to figure out how to most cost effectively blend our sausages.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Let's model our problem:</p>
+<p>$
+  p_e = \text{Pork in the economy sausages (kg)} \\
+  w_e = \text{Wheat in the economy sausages (kg)} \\  
+  s_e = \text{Starch in the economy sausages (kg)} \\
+  p_p = \text{Pork in the premium sausages (kg)}  \\
+  w_p = \text{Wheat in the premium sausages (kg)}  \\
+  s_p = \text{Starch in the premium sausages (kg)}  \\
+$</p>
+<p>We want to minimise costs such that:</p>
+<p>$\text{Cost} = 0.72(p_e + p_p) + 0.41(w_e + w_p) + 0.31(s_e + s_p)$</p>
+<p>With the following constraints:</p>
+<p>$
+ p_e + w_e + s_e = 350 \times 0.05 \\
+ p_p + w_p + s_p = 500 \times 0.05 \\
+ p_e \geq 0.4(p_e + w_e + s_e) \\
+ p_p \geq 0.6(p_p + w_p + s_p) \\ 
+ s_e \leq 0.25(p_e + w_e + s_e) \\
+ s_p \leq 0.25(p_p + w_p + s_p) \\
+ p_e + p_p \leq 30 \\
+ w_e + w_p \leq 20 \\
+ s_e + s_p \leq 17 \\
+ p_e + p_p \geq 23 \\
+ $</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="kn">import</span> <span class="nn">pulp</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="c"># Instantiate our problem class</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s">&quot;Cost minimising blending problem&quot;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Here we have 6 decision variables, we could name them individually but this wouldn't scale up if we had hundreds/thousands of variables (you don't want to be entering all of these by hand multiple times).</p>
+<p>We'll create a couple of lists from which we can create tuple indices.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="c"># Construct our decision variable lists</span>
+<span class="n">sausage_types</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;economy&#39;</span><span class="p">,</span> <span class="s">&#39;premium&#39;</span><span class="p">]</span>
+<span class="n">ingredients</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;pork&#39;</span><span class="p">,</span> <span class="s">&#39;wheat&#39;</span><span class="p">,</span> <span class="s">&#39;starch&#39;</span><span class="p">]</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Each of these decision variables will have similar characteristics (lower bound of 0, continuous variables). Therefore we can use PuLP's LpVariable object's dict functionality, we can provide our tuple indices.</p>
+<p>These tuples will be keys for the ing_weight dict of decision variables</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">ing_weight</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span><span class="s">&quot;weight kg&quot;</span><span class="p">,</span>
+                                     <span class="p">((</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sausage_types</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">ingredients</span><span class="p">),</span>
+                                     <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                     <span class="n">cat</span><span class="o">=</span><span class="s">&#39;Continuous&#39;</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>PuLP provides an lpSum vector calculation for the sum of a list of linear expressions.</p>
+<p>Whilst we only have 6 decision variables, I will demonstrate how the problem would be constructed in a way that could be scaled up to many variables using list comprehensions.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="c"># Objective Function</span>
+<span class="n">model</span> <span class="o">+=</span> <span class="p">(</span>
+    <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span>
+        <span class="mf">4.32</span> <span class="o">*</span> <span class="n">ing_weight</span><span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="s">&#39;pork&#39;</span><span class="p">)]</span>
+        <span class="o">+</span> <span class="mf">2.46</span> <span class="o">*</span> <span class="n">ing_weight</span><span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="s">&#39;wheat&#39;</span><span class="p">)]</span>
+        <span class="o">+</span> <span class="mf">1.86</span> <span class="o">*</span> <span class="n">ing_weight</span><span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="s">&#39;starch&#39;</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sausage_types</span><span class="p">])</span>
+<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Now we add our constraints, bear in mind again here how the use of list comprehensions allows for scaling up to many ingredients or sausage types</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[6]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="c"># Constraints</span>
+<span class="c"># 350 economy and 500 premium sausages at 0.05 kg</span>
+<span class="n">model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">ing_weight</span><span class="p">[</span><span class="s">&#39;economy&#39;</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">ingredients</span><span class="p">])</span> <span class="o">==</span> <span class="mi">350</span> <span class="o">*</span> <span class="mf">0.05</span>
+<span class="n">model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">ing_weight</span><span class="p">[</span><span class="s">&#39;premium&#39;</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">ingredients</span><span class="p">])</span> <span class="o">==</span> <span class="mi">500</span> <span class="o">*</span> <span class="mf">0.05</span>
+
+<span class="c"># Economy has &gt;= 40% pork, premium &gt;= 60% pork</span>
+<span class="n">model</span> <span class="o">+=</span> <span class="n">ing_weight</span><span class="p">[</span><span class="s">&#39;economy&#39;</span><span class="p">,</span> <span class="s">&#39;pork&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="p">(</span>
+    <span class="mf">0.4</span> <span class="o">*</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">ing_weight</span><span class="p">[</span><span class="s">&#39;economy&#39;</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">ingredients</span><span class="p">]))</span>
+
+<span class="n">model</span> <span class="o">+=</span> <span class="n">ing_weight</span><span class="p">[</span><span class="s">&#39;premium&#39;</span><span class="p">,</span> <span class="s">&#39;pork&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="p">(</span>
+    <span class="mf">0.6</span> <span class="o">*</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">ing_weight</span><span class="p">[</span><span class="s">&#39;premium&#39;</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">ingredients</span><span class="p">]))</span>
+
+<span class="c"># Sausages must be &lt;= 25% starch</span>
+<span class="n">model</span> <span class="o">+=</span> <span class="n">ing_weight</span><span class="p">[</span><span class="s">&#39;economy&#39;</span><span class="p">,</span> <span class="s">&#39;starch&#39;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="p">(</span>
+    <span class="mf">0.25</span> <span class="o">*</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">ing_weight</span><span class="p">[</span><span class="s">&#39;economy&#39;</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">ingredients</span><span class="p">]))</span>
+
+<span class="n">model</span> <span class="o">+=</span> <span class="n">ing_weight</span><span class="p">[</span><span class="s">&#39;premium&#39;</span><span class="p">,</span> <span class="s">&#39;starch&#39;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="p">(</span>
+    <span class="mf">0.25</span> <span class="o">*</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">ing_weight</span><span class="p">[</span><span class="s">&#39;premium&#39;</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">ingredients</span><span class="p">]))</span>
+
+<span class="c"># We have at most 30 kg of pork, 20 kg of wheat and 17 kg of starch available</span>
+<span class="n">model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">ing_weight</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="s">&#39;pork&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sausage_types</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="mi">30</span>
+<span class="n">model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">ing_weight</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="s">&#39;wheat&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sausage_types</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="mi">20</span>
+<span class="n">model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">ing_weight</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="s">&#39;starch&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sausage_types</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="mi">17</span>
+
+<span class="c"># We have at least 23 kg of pork to use up</span>
+<span class="n">model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">ing_weight</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="s">&#39;pork&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sausage_types</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="mi">23</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="c"># Solve our problem</span>
+<span class="n">model</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+<span class="n">pulp</span><span class="o">.</span><span class="n">LpStatus</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">status</span><span class="p">]</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">Out[7]:</div>
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>&apos;Optimal&apos;</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[8]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">ing_weight</span><span class="p">:</span>
+    <span class="n">var_value</span> <span class="o">=</span> <span class="n">ing_weight</span><span class="p">[</span><span class="n">var</span><span class="p">]</span><span class="o">.</span><span class="n">varValue</span>
+    <span class="k">print</span> <span class="s">&quot;The weight of {0} in {1} sausages is {2} kg&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">var</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">var_value</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>The weight of starch in premium sausages is 6.25 kg
+The weight of starch in economy sausages is 4.375 kg
+The weight of wheat in economy sausages is 6.125 kg
+The weight of wheat in premium sausages is 2.75 kg
+The weight of pork in economy sausages is 7.0 kg
+The weight of pork in premium sausages is 16.0 kg
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[9]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">total_cost</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">objective</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="s">&quot;The total cost is €{} for 350 economy sausages and 500 premium sausages&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">total_cost</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>The total cost is €140.96 for 350 economy sausages and 500 premium sausages
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>

@@ -1,0 +1,321 @@
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Introduction-to-Linear-Programming-with-Python---Part-2">Introduction to Linear Programming with Python - Part 2<a class="anchor-link" href="#Introduction-to-Linear-Programming-with-Python---Part-2">&#182;</a></h1><h2 id="Introduction-to-PuLP">Introduction to PuLP<a class="anchor-link" href="#Introduction-to-PuLP">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><a href="http://pythonhosted.org/PuLP/">PuLP</a> is an open source linear programming package for python. PuLP can be installed using pip, instructions <a href="http://pythonhosted.org/PuLP/main/installing_pulp_at_home.html">here</a>.</p>
+<p>In this notebook, we'll explore how to construct and solve the linear programming problem described in Part 1 using PuLP.</p>
+<p>A brief reminder of our linear programming problem:</p>
+<p>We want to find the maximum solution to the objective function:</p>
+<p>$Z = 4x + 3y$</p>
+<p>Subject to the following constraints:</p>
+<p>$
+x \geq 0 \\
+y \geq 2 \\
+2y \leq 25 - x \\
+4y \geq 2x - 8 \\
+y \leq 2x -5 \\
+$</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>We'll begin by importing PuLP</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="kn">import</span> <span class="nn">pulp</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Then instantiate a problem class, we'll name it "My LP problem" and we're looking for an optimal maximum so we use LpMaximize</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">my_lp_problem</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s">&quot;My LP Problem&quot;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMaximize</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>We then model our decision variables using the LpVariable class. In our example, x had a lower bound of 0 and y had a lower bound of 2.</p>
+<p>Upper bounds can be assigned using the upBound parameter.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">x</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="s">&#39;Continuous&#39;</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s">&#39;y&#39;</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="s">&#39;Continuous&#39;</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>The objective function and constraints are added using the += operator to our model.</p>
+<p>The objective function is added first, then the individual constraints.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="c"># Objective function</span>
+<span class="n">my_lp_problem</span> <span class="o">+=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">y</span><span class="p">,</span> <span class="s">&quot;Z&quot;</span>
+
+<span class="c"># Constraints</span>
+<span class="n">my_lp_problem</span> <span class="o">+=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">25</span> <span class="o">-</span> <span class="n">x</span>
+<span class="n">my_lp_problem</span> <span class="o">+=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">8</span>
+<span class="n">my_lp_problem</span> <span class="o">+=</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">5</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>We have now constructed our problem and can have a look at it.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">my_lp_problem</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">Out[5]:</div>
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>My LP Problem:
+MAXIMIZE
+4*x + 3*y + 0
+SUBJECT TO
+_C1: x + 2 y &lt;= 25
+
+_C2: - 2 x + 4 y &gt;= -8
+
+_C3: - 2 x + y &lt;= -5
+
+VARIABLES
+x Continuous
+2 &lt;= y Continuous</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>PuLP supports open source linear programming solvers such as CBC and GLPK, as well as commercial solvers such as Gurobi and IBM's CPLEX.</p>
+<p>The default solver is CBC, which comes packaged with PuLP upon installation.</p>
+<p>For most applications, the open source CBC from <a href="http://www.coin-or.org/">COIN-OR</a> will be enough for most simple linear programming optimisation algorithms.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[6]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">my_lp_problem</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+<span class="n">pulp</span><span class="o">.</span><span class="n">LpStatus</span><span class="p">[</span><span class="n">my_lp_problem</span><span class="o">.</span><span class="n">status</span><span class="p">]</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">Out[6]:</div>
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>&apos;Optimal&apos;</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>We have also checked the status of the solver, there are 5 status codes:</p>
+<ul>
+<li><strong>Not Solved</strong>: Status prior to solving the problem.</li>
+<li><strong>Optimal</strong>: An optimal solution has been found.</li>
+<li><strong>Infeasible</strong>: There are no feasible solutions (e.g. if you set the constraints x &lt;= 1 and x &gt;=2).</li>
+<li><strong>Unbounded</strong>: The constraints are not bounded, maximising the solution will tend towards infinity (e.g. if the only constraint was x &gt;= 3).</li>
+<li><strong>Undefined</strong>: The optimal solution may exist but may not have been found.</li>
+</ul>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>We can now view our maximal variable values and the maximum value of Z.</p>
+<p>We can use the varValue method to retrieve the values of our variables x and y, and the pulp.value function to view the maximum value of the objective function.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="k">for</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">my_lp_problem</span><span class="o">.</span><span class="n">variables</span><span class="p">():</span>
+    <span class="k">print</span> <span class="s">&quot;{} = {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">variable</span><span class="o">.</span><span class="n">varValue</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>x = 14.5
+y = 5.25
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[8]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="k">print</span> <span class="n">pulp</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">my_lp_problem</span><span class="o">.</span><span class="n">objective</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>73.75
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Same values as our manual calculations in part 1.</p>
+<p>In the next part we'll be looking at a more real world problem.</p>
+
+</div>
+</div>
+</div>
