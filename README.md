@@ -4,7 +4,7 @@ Linear Programming, also sometimes called linear optimisation, involves maximisi
 
 It has great applications in the field of operations management but can be used to solve a range of problems. 
 
-Leonard Kantrovich was awarded the 1975 Nobel Price in Economics for the optimal allocation of resources using linear programming.
+Leonard Kantrovich was awarded the 1975 Nobel Prize in Economics for the optimal allocation of resources using linear programming.
 
 Examples of problems that can be solved by linear programming include:
 * Scheduling - Rota or Factory scheduling to meet production/workload demands
