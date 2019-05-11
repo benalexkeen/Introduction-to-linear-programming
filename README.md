@@ -20,7 +20,8 @@ We will be using python and the [PuLP](http://pythonhosted.org/PuLP/) linear pro
 #### [Part 2](https://github.com/benalexkeen/Introduction-to-linear-programming/blob/master/Introduction%20to%20Linear%20Programming%20with%20Python%20-%20Part%202.ipynb) - Introduction to PuLP
 #### [Part 3](https://github.com/benalexkeen/Introduction-to-linear-programming/blob/master/Introduction%20to%20Linear%20Programming%20with%20Python%20-%20Part%203.ipynb) - Real world examples - Resourcing Problem
 #### [Part 4](https://github.com/benalexkeen/Introduction-to-linear-programming/blob/master/Introduction%20to%20Linear%20Programming%20with%20Python%20-%20Part%204.ipynb) - Real world examples - Blending Problem
-#### [Part 5](https://github.com/benalexkeen/Introduction-to-linear-programming/blob/master/%20Introduction%20to%20Linear%20Programming%20with%20Python%20-%20Part%205.ipynb) - Using PuLP with pandas and binary constraints to solve a scheduling problem
-#### [Part 6](https://github.com/benalexkeen/Introduction-to-linear-programming/blob/master/%20Introduction%20to%20Linear%20Programming%20with%20Python%20-%20Part%206.ipynb) - Mocking conditional statements using binary constraints
+#### [Part 5](https://github.com/benalexkeen/Introduction-to-linear-programming/blob/master/Introduction%20to%20Linear%20Programming%20with%20Python%20-%20Part%205.ipynb) - Using PuLP with pandas and binary constraints to solve a scheduling problem
+#### [Part 6](
+https://github.com/benalexkeen/Introduction-to-linear-programming/blob/master/Introduction%20to%20Linear%20Programming%20with%20Python%20-%20Part%206.ipynb) - Mocking conditional statements using binary constraints
 
 
